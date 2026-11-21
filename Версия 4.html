@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>🎮 Путь Знаний и Отметок — методика Ильина-Курдюковой</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Comic Sans MS', 'Segoe UI', sans-serif; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    color: #fff;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+  .game-container {
+    width: 100%;
+    max-width: 820px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 4px solid #ffd700;
+    border-radius: 25px;
+    padding: 35px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+    color: #333;
+    margin: 20px 0;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2.2em;
+    color: #764ba2;
+    margin-bottom: 10px;
+  }
+  .subtitle { text-align: center; color: #ff6ec4; margin-bottom: 20px; font-size: 1.15em; font-weight: bold; }
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .progress-bar {
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 2px solid #ffd700;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #ffd700, #ff6ec4);
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 0.95em;
+    color: #764ba2;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+
+  .info-display {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1em;
+    font-weight: bold;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .info-item {
+    background: #f0f0f0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    color: #764ba2;
+  }
+
+  .question-block {
+    background: linear-gradient(135deg, #f9f9ff 0%, #fff0f8 100%);
+    border: 2px solid #e0c0e0;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    min-height: 200px;
+  }
+  .question-number {
+    display: inline-block;
+    background: #764ba2;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 1.1em;
+  }
+  .question-text {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    display: inline;
+  }
+  .answer-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+  }
+  .answer-btn {
+    flex: 1;
+    min-width: 180px;
+    padding: 16px;
+    background: #f0f0f0;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    color: #333;
+  }
+  .answer-btn:hover {
+    background: #fff9e6;
+    border-color: #ffd700;
+    transform: translateY(-2px);
+  }
+  .answer-btn.selected {
+    background: linear-gradient(135deg, #ffd700, #ff6ec4);
+    color: white;
+    border-color: #764ba2;
+    box-shadow: 0 4px 12px rgba(255, 110, 196, 0.4);
+  }
+
+  .feedback {
+    text-align: center;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    animation: pop 0.4s ease;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .feedback.positive { background: #c8e6c9; color: #2e7d32; }
+  .feedback.neutral { background: #fff9c4; color: #f57f17; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #764ba2, #ff6ec4);
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(118, 75, 162, 0.5);
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: linear-gradient(135deg, #4CAF50, #8BC34A);
+  }
+  .btn-print {
+    background: linear-gradient(135deg, #2196F3, #03A9F4);
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.2em;
+    border: 3px solid #e0c0e0;
+    border-radius: 12px;
+    margin: 15px 0;
+    font-family: inherit;
+    text-align: center;
+  }
+  .name-input:focus {
+    outline: none;
+    border-color: #ff6ec4;
+    box-shadow: 0 0 10px rgba(255, 110, 196, 0.3);
+  }
+
+  .final-result { text-align: center; padding: 20px 10px; }
+  .final-title { font-size: 1.8em; margin-bottom: 10px; color: #764ba2; }
+  .child-name {
+    font-size: 1.5em;
+    color: #ff6ec4;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  .date-info {
+    color: #777;
+    font-size: 0.95em;
+    margin-bottom: 20px;
+  }
+
+  .scale-container {
+    background: #f9f9ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 15px 0;
+    text-align: left;
+  }
+  .scale-title {
+    font-size: 1.25em;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #764ba2;
+  }
+  .scale-bar-wrapper {
+    position: relative;
+    margin: 15px 0;
+  }
+  .scale-bar {
+    height: 35px;
+    background: linear-gradient(90deg, #ffcdd2 0%, #ffcdd2 25%, #fff9c4 25%, #fff9c4 58.3%, #c8e6c9 58.3%, #c8e6c9 100%);
+    border-radius: 15px;
+    position: relative;
+    border: 2px solid #ddd;
+  }
+  .scale-marker {
+    position: absolute;
+    top: -8px;
+    width: 4px;
+    height: 50px;
+    background: #333;
+    transition: left 1s ease;
+    z-index: 2;
+  }
+  .scale-marker::after {
+    content: "▼";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5em;
+    color: #333;
+  }
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+  .scale-score {
+    font-size: 1.3em;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    color: #764ba2;
+  }
+  .scale-level {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+  .level-high { background: #c8e6c9; color: #2e7d32; }
+  .level-mid { background: #fff9c4; color: #f57f17; }
+  .level-low { background: #ffcdd2; color: #c62828; }
+
+  .verdict-box {
+    background: linear-gradient(135deg, #fff0f8, #f0f0ff);
+    border: 3px solid #ffd700;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .verdict-title {
+    font-size: 1.5em;
+    color: #764ba2;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+  .verdict-text {
+    font-size: 1.1em;
+    line-height: 1.7;
+    color: #333;
+    text-align: left;
+  }
+
+  .recommendations {
+    background: #f9f9ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+  }
+  .recommendations h3 {
+    color: #764ba2;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+  }
+  .recommendations ul { list-style: none; padding: 0; }
+  .recommendations li {
+    padding: 10px 0 10px 30px;
+    position: relative;
+    line-height: 1.6;
+    border-bottom: 1px dashed #e0c0e0;
+  }
+  .recommendations li:last-child { border-bottom: none; }
+  .recommendations li:before {
+    content: "✨";
+    position: absolute;
+    left: 0;
+    font-size: 1.2em;
+  }
+
+  .methodology-note {
+    background: #fff9e6;
+    border-left: 4px solid #ffd700;
+    padding: 12px 15px;
+    margin: 15px 0;
+    font-size: 0.9em;
+    color: #555;
+    border-radius: 5px;
+    text-align: left;
+  }
+
+  .confetti {
+    position: fixed;
+    width: 12px; height: 12px;
+    pointer-events: none;
+    animation: fall 3s linear forwards;
+    z-index: 9999;
+  }
+  @keyframes fall {
+    to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .buttons-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .buttons-row .btn { flex: 1; min-width: 200px; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .game-container { box-shadow: none; border: 2px solid #333; max-width: 100%; }
+    .btn, .progress-bar, .info-display { display: none !important; }
+    .screen { display: block !important; }
+    #screen-start, #screen-question { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <h1>🎮 Путь Знаний и Отметок</h1>
+  <p class="subtitle">🌟 Психологическое путешествие по методике Е.П. Ильина и Н.А. Курдюковой 🌟</p>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-text" id="progressText">Готов начать?</div>
+
+  <!-- СТАРТ -->
+  <div class="screen active" id="screen-start">
+    <div class="question-block">
+      <div class="question-text" style="font-size: 1.15em; display: block;">
+        🌟 <b>Привет, герой!</b><br><br>
+        Тебя ждёт увлекательное путешествие из <b>24 вопросов</b>! Ты узнаешь, что для тебя важнее в учёбе — <b>новые знания</b> 📚 или <b>хорошие отметки</b> 🏆.<br><br>
+        Отвечай честно — здесь нет правильных или неправильных ответов! Каждый ответ — это твой выбор.
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <label style="font-size: 1.2em; font-weight: bold; color: #764ba2;">
+        ✏️ Как тебя зовут?
+      </label>
+      <input type="text" class="name-input" id="childName" placeholder="Введи своё имя..." maxlength="30">
+    </div>
+
+    <div class="methodology-note">
+      📋 <b>Для родителей и педагогов:</b> Игра основана на валидной психодиагностической методике Е.П. Ильина и Н.А. Курдюковой (1997). Методика включает две субшкалы: «Направленность на приобретение знаний» и «Направленность на отметку». Обработка результатов соответствует оригинальному ключу.
+    </div>
+
+    <button class="btn" onclick="startGame()">🚀 Начать приключение!</button>
+  </div>
+
+  <!-- ВОПРОСЫ -->
+  <div class="screen" id="screen-question">
+    <div class="info-display">
+      <div class="info-item">👤 <span id="displayName">Ученик</span></div>
+      <div class="info-item">📚 Знания: <span id="kScore">0</span></div>
+      <div class="info-item">🏆 Отметки: <span id="mScore">0</span></div>
+    </div>
+
+    <div class="question-block">
+      <span class="question-number" id="qNumber">1</span>
+      <span class="question-text" id="qText">Текст вопроса</span>
+      <div class="answer-buttons" id="answerButtons"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Дальше ➡️</button>
+  </div>
+
+  <!-- ФИНАЛ -->
+  <div class="screen" id="screen-final">
+    <div class="final-result">
+      <div class="final-title">🏆 Твой результат!</div>
+      <div class="child-name" id="finalName">Имя</div>
+      <div class="date-info" id="dateInfo">Дата прохождения</div>
+
+      <div class="scale-container">
+        <div class="scale-title">📚 Направленность на ЗНАНИЯ</div>
+        <div class="scale-bar-wrapper">
+          <div class="scale-bar">
+            <div class="scale-marker" id="knowledgeMarker" style="left: 0%"></div>
+          </div>
+          <div class="scale-labels">
+            <span>0</span><span>3</span><span>7</span><span>12</span>
+          </div>
+        </div>
+        <div class="scale-score" id="knowledgeScore">0 / 12</div>
+        <div class="scale-level" id="knowledgeLevel">...</div>
+      </div>
+
+      <div class="scale-container">
+        <div class="scale-title">🏆 Направленность на ОТМЕТКИ</div>
+        <div class="scale-bar-wrapper">
+          <div class="scale-bar">
+            <div class="scale-marker" id="markMarker" style="left: 0%"></div>
+          </div>
+          <div class="scale-labels">
+            <span>0</span><span>3</span><span>7</span><span>12</span>
+          </div>
+        </div>
+        <div class="scale-score" id="markScore">0 / 12</div>
+        <div class="scale-level" id="markLevel">...</div>
+      </div>
+
+      <div class="verdict-box">
+        <div class="verdict-title" id="verdictTitle">🎯 Твой путь</div>
+        <div class="verdict-text" id="verdictText">...</div>
+      </div>
+
+      <div class="recommendations">
+        <h3>💡 Рекомендации:</h3>
+        <ul id="recList"></ul>
+      </div>
+
+      <div class="methodology-note">
+        📋 <b>Методика обработки:</b><br>
+        • <b>Шкала «Знания»:</b> «а» на вопросах 1–6, 8–11 и «б» на 7, 12.<br>
+        • <b>Шкала «Отметки»:</b> «да» на вопросах 1–9 и «нет» на 10–12.<br>
+        • <b>Уровни:</b> 0–3 — низкий, 4–7 — средний, 8–12 — высокий.<br>
+        • <b>Вывод:</b> сопоставление двух шкал показывает преобладающую мотивацию.
+      </div>
+
+      <div class="buttons-row">
+        <button class="btn btn-print" onclick="window.print()">🖨️ Распечатать результат</button>
+        <button class="btn btn-secondary" onclick="restart()">🔄 Пройти ещё раз</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === ОРИГИНАЛЬНЫЕ ВОПРОСЫ МЕТОДИКИ ===
+  // Методика «Направленность на приобретение знаний» (Ильин, Курдюкова)
+  // Ключ: «а» на 1-6, 8-11; «б» на 7, 12
+  const knowledgeQuestions = [
+    { text: "Получив плохую отметку, ты, придя домой:", a: "а) сразу садишься за уроки, повторяя и то, что плохо ответил", b: "б) садишься смотреть телевизор или играть, думая, что урок будет ещё не скоро", key: "a" },
+    { text: "После получения хорошей отметки ты:", a: "а) продолжаешь добросовестно готовиться к следующему уроку", b: "б) не готовишься тщательно, так как знаешь, что всё равно не спросят", key: "a" },
+    { text: "Бывает ли, что ты остаёшься недоволен своим ответом, а не полученной отметкой?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Что для тебя учёба?", a: "а) познание нового", b: "б) обременительное занятие", key: "a" },
+    { text: "Зависят ли твои отметки от тщательности подготовки к уроку?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Анализируешь ли ты после получения низкой отметки, что ты сделал неправильно?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Зависит ли твоё желание готовить домашнее задание от того, выставляют ли за него отметки?", a: "а) да", b: "б) нет", key: "b" },
+    { text: "Легко ли ты втягиваешься в учёбу после каникул?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Жалеешь ли ты, что не бывает уроков из-за болезни учителя?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Когда ты получаешь новые учебники, тебя интересует, о чём в них идёт речь?", a: "а) да", b: "б) нет", key: "a" },
+    { text: "Что, по-твоему, лучше — учиться или болеть?", a: "а) учиться", b: "б) болеть", key: "a" },
+    { text: "Что для тебя важнее — отметки или знания?", a: "а) отметки", b: "б) знания", key: "b" }
+  ];
+
+  // Методика «Направленность на отметку» (Ильин, Курдюкова)
+  // Ключ: «да» на 1-9; «нет» на 10-12
+  const markQuestions = [
+    { text: "Помнишь ли ты, когда получил первую в жизни двойку?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Беспокоит ли тебя, что твои отметки несколько хуже, чем у других учеников класса?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Бывает ли, что перед контрольной работой сердце у тебя начинает учащённо биться?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Краснеешь ли ты при объявлении тебе плохой отметки?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Если в конце недели ты получишь плохую отметку, у тебя в выходной день плохое настроение?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Если тебя долго не спрашивают на уроках, это тебя беспокоит?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Волнует ли тебя реакция сверстников на полученную тобой отметку?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "После получения хорошей отметки готовишься ли ты к следующему уроку как следует, хотя знаешь, что всё равно скоро не спросят?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Тревожит ли тебя ожидание опроса?", yes: "✅ Да", no: "❌ Нет", key: "yes" },
+    { text: "Было бы тебе интересно учиться, если бы отметок вообще не было?", yes: "✅ Да", no: "❌ Нет", key: "no" },
+    { text: "Захочешь ли ты, чтобы тебя спросили, если будешь знать, что отметку за ответ не поставят?", yes: "✅ Да", no: "❌ Нет", key: "no" },
+    { text: "После получения отметки на уроке ты продолжаешь активно работать?", yes: "✅ Да", no: "❌ Нет", key: "yes" }
+  ];
+
+  // === СОСТОЯНИЕ ===
+  let allQuestions = [];
+  let currentQ = 0;
+  let knowledgeScore = 0;
+  let markScore = 0;
+  let currentAnswer = null;
+  let childName = '';
+  let startTime = null;
+
+  // Подбадривающие фразы
+  const encouragements = [
+    "Отличный ответ! 👍",
+    "Спасибо за честность! 🌟",
+    "Принято! Продолжаем! 🚀",
+    "Интересно! Идём дальше! ✨",
+    "Хорошо! Следующий вопрос! 🎯",
+    "Молодец! 💫",
+    "Записал! 📝"
+  ];
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function initQuestions() {
+    // Перемешиваем вопросы внутри каждой шкалы отдельно, затем чередуем
+    const kShuffled = shuffleArray(knowledgeQuestions.map(q => ({ ...q, type: 'knowledge' })));
+    const mShuffled = shuffleArray(markQuestions.map(q => ({ ...q, type: 'mark' })));
+    allQuestions = [];
+    for (let i = 0; i < 12; i++) {
+      allQuestions.push(kShuffled[i]);
+      allQuestions.push(mShuffled[i]);
+    }
+  }
+
+  function startGame() {
+    childName = document.getElementById('childName').value.trim() || 'Ученик';
+    document.getElementById('displayName').textContent = childName;
+    initQuestions();
+    currentQ = 0;
+    knowledgeScore = 0;
+    markScore = 0;
+    startTime = new Date();
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = allQuestions[currentQ];
+    document.getElementById('qNumber').textContent = currentQ + 1;
+    document.getElementById('qText').textContent = q.text;
+    document.getElementById('kScore').textContent = knowledgeScore;
+    document.getElementById('mScore').textContent = markScore;
+
+    const btnContainer = document.getElementById('answerButtons');
+    btnContainer.innerHTML = '';
+
+    if (q.type === 'knowledge') {
+      addAnswerBtn(q.a, 'a', q.key === 'a');
+      addAnswerBtn(q.b, 'b', q.key === 'b');
+    } else {
+      addAnswerBtn(q.yes, 'yes', q.key === 'yes');
+      addAnswerBtn(q.no, 'no', q.key === 'no');
+    }
+
+    currentAnswer = null;
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('feedback').classList.remove('show');
+
+    const pct = (currentQ / allQuestions.length) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `Вопрос ${currentQ + 1} из ${allQuestions.length}`;
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-question').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function addAnswerBtn(text, value, isScored) {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = text;
+    btn.onclick = () => selectAnswer(btn, value, isScored);
+    document.getElementById('answerButtons').appendChild(btn);
+  }
+
+  function selectAnswer(btn, value, isScored) {
+    document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentAnswer = { value, isScored };
+    document.getElementById('nextBtn').disabled = false;
+
+    // Показываем обратную связь
+    const fb = document.getElementById('feedback');
+    fb.textContent = encouragements[Math.floor(Math.random() * encouragements.length)];
+    fb.className = 'feedback show ' + (isScored ? 'positive' : 'neutral');
+  }
+
+  function nextQuestion() {
+    if (!currentAnswer) return;
+    const q = allQuestions[currentQ];
+    if (q.type === 'knowledge' && currentAnswer.value === q.key) knowledgeScore++;
+    if (q.type === 'mark' && currentAnswer.value === q.key) markScore++;
+
+    currentQ++;
+    if (currentQ >= allQuestions.length) {
+      showFinal();
+    } else {
+      showQuestion();
+    }
+  }
+
+  function getLevel(score) {
+    if (score >= 8) return { text: '🌟 ВЫСОКИЙ', class: 'level-high', desc: 'Сильно выражено' };
+    if (score >= 4) return { text: '📊 СРЕДНИЙ', class: 'level-mid', desc: 'Умеренно выражено' };
+    return { text: '🌱 НИЗКИЙ', class: 'level-low', desc: 'Слабо выражено' };
+  }
+
+  function showFinal() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-final').classList.add('active');
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressText').textContent = '✅ Завершено!';
+
+    document.getElementById('finalName').textContent = childName;
+    const now = new Date();
+    const duration = startTime ? Math.round((now - startTime) / 60000) : '?';
+    document.getElementById('dateInfo').textContent = 
+      `📅 ${now.toLocaleDateString('ru-RU')} в ${now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})} • ⏱️ Время прохождения: ${duration} мин.`;
+
+    // Шкала знаний
+    const kPct = (knowledgeScore / 12) * 100;
+    setTimeout(() => {
+      document.getElementById('knowledgeMarker').style.left = `calc(${kPct}% - 2px)`;
+    }, 200);
+    document.getElementById('knowledgeScore').textContent = `${knowledgeScore} / 12 баллов`;
+    const kLevel = getLevel(knowledgeScore);
+    const kLevelEl = document.getElementById('knowledgeLevel');
+    kLevelEl.textContent = `${kLevel.text} — ${kLevel.desc}`;
+    kLevelEl.className = 'scale-level ' + kLevel.class;
+
+    // Шкала отметок
+    const mPct = (markScore / 12) * 100;
+    setTimeout(() => {
+      document.getElementById('markMarker').style.left = `calc(${mPct}% - 2px)`;
+    }, 400);
+    document.getElementById('markScore').textContent = `${markScore} / 12 баллов`;
+    const mLevel = getLevel(markScore);
+    const mLevelEl = document.getElementById('markLevel');
+    mLevelEl.textContent = `${mLevel.text} — ${mLevel.desc}`;
+    mLevelEl.className = 'scale-level ' + mLevel.class;
+
+    // === ВАЛИДНАЯ ИНТЕРПРЕТАЦИЯ ПО СОПОСТАВЛЕНИЮ ШКАЛ ===
+    generateVerdict(knowledgeScore, markScore, kLevel, mLevel);
+    generateRecommendations(knowledgeScore, markScore, kLevel, mLevel);
+
+    if (knowledgeScore >= 8 && markScore <= 3) launchConfetti();
+  }
+
+  function generateVerdict(k, m, kLvl, mLvl) {
+    const diff = k - m;
+    let title, text;
+
+    // Комбинированная интерпретация по 9 типам профиля
+    if (k >= 8 && m <= 3) {
+      title = "📚 ЯВНОЕ ПРЕОБЛАДАНИЕ МОТИВАЦИИ К ЗНАНИЯМ";
+      text = `<b>${childName}</b>, у тебя <b>высокая направленность на приобретение знаний</b> и низкая — на отметки. Это очень ценный тип учебной мотивации! Ты учишься ради самого процесса познания, а оценки для тебя — лишь побочный результат. Ты любишь узнавать новое, разбираешься в предметах и не зависишь от внешних оценок. Такие ученики часто становятся настоящими исследователями и учёными.`;
+    } else if (k >= 8 && m >= 4 && m <= 7) {
+      title = "📚🏆 ЗДОРОВАЯ УЧЕБНАЯ МОТИВАЦИЯ";
+      text = `<b>${childName}</b>, у тебя <b>высокая мотивация к знаниям</b> при умеренном внимании к отметкам. Это оптимальное сочетание! Ты genuinely интересуешься учёбой, но при этом понимаешь важность хороших оценок. Такая мотивация помогает тебе успешно учиться и сохранять интерес к предметам.`;
+    } else if (k >= 8 && m >= 8) {
+      title = "📚🏆 ДВОЙНАЯ МОТИВАЦИЯ";
+      text = `<b>${childName}</b>, у тебя <b>одинаково высокая</b> направленность и на знания, и на отметки. Ты стремишься и глубоко понимать предметы, и получать отличные оценки. Это сильная позиция, но следи, чтобы тревога из-за оценок не мешала радоваться процессу обучения.`;
+    } else if (k >= 4 && k <= 7 && m <= 3) {
+      title = "📚 УМЕРЕННАЯ МОТИВАЦИЯ К ЗНАНИЯМ";
+      text = `<b>${childName}</b>, у тебя <b>средняя мотивация к знаниям</b> и низкая — к отметкам. Ты учишься достаточно спокойно, без сильного давления. Возможно, тебе стоит найти предметы, которые по-настоящему тебя увлекают, чтобы учёба стала интереснее.`;
+    } else if (k >= 4 && k <= 7 && m >= 4 && m <= 7) {
+      title = "⚖️ СБАЛАНСИРОВАННАЯ МОТИВАЦИЯ";
+      text = `<b>${childName}</b>, у тебя <b>средний уровень</b> и мотивации к знаниям, и внимания к отметкам. Это типичная ситуация для многих школьников. Ты понимаешь важность и того, и другого. Попробуй найти свои «точки интереса» в учёбе — это поможет усилить мотивацию.`;
+    } else if (k >= 4 && k <= 7 && m >= 8) {
+      title = "🏆 ПРЕОБЛАДАНИЕ МОТИВАЦИИ К ОТМЕТКАМ";
+      text = `<b>${childName}</b>, при средней мотивации к знаниям у тебя <b>высокая направленность на отметки</b>. Оценки для тебя очень важны и могут сильно влиять на настроение. Постарайся больше внимания уделять самому процессу обучения — тогда и знания, и оценки будут приходить легче.`;
+    } else if (k <= 3 && m <= 3) {
+      title = "🌱 СНИЖЕННАЯ УЧЕБНАЯ МОТИВАЦИЯ";
+      text = `<b>${childName}</b>, у тебя <b>низкий уровень</b> и мотивации к знаниям, и внимания к отметкам. Возможно, учёба пока не вызывает у тебя интереса. Это нормально — у каждого свой путь. Важно найти то, что тебе по-настоящему интересно, и попросить помощи у учителя или родителей.`;
+    } else if (k <= 3 && m >= 4 && m <= 7) {
+      title = "🏆 ВНЕШНЯЯ МОТИВАЦИЯ";
+      text = `<b>${childName}</b>, при низкой мотивации к знаниям у тебя <b>умеренная направленность на отметки</b>. Ты учишься в основном ради оценок, а не ради самих знаний. Попробуй найти в предметах что-то интересное для себя — это сделает учёбу легче и приятнее.`;
+    } else if (k <= 3 && m >= 8) {
+      title = "⚠️ ЯВНОЕ ПРЕОБЛАДАНИЕ МОТИВАЦИИ К ОТМЕТКАМ";
+      text = `<b>${childName}</b>, у тебя <b>высокая направленность на отметки</b> при низкой мотивации к знаниям. Оценки очень важны для тебя и могут вызывать тревогу. Важно помнить: ты — это не только твои оценки! Постарайся находить радость в самом процессе обучения, даже в мелочах.`;
+    } else {
+      title = "🎯 ТВОЙ УНИКАЛЬНЫЙ ПРОФИЛЬ";
+      text = `<b>${childName}</b>, твой профиль мотивации сочетает разные особенности. Знания: ${k}/12 (${kLvl.desc}), отметки: ${m}/12 (${mLvl.desc}). Каждый ученик уникален — важно найти свой путь в учёбе.`;
+    }
+
+    document.getElementById('verdictTitle').innerHTML = title;
+    document.getElementById('verdictText').innerHTML = text;
+  }
+
+  function generateRecommendations(k, m, kLvl, mLvl) {
+    const recs = [];
+
+    // Рекомендации по шкале знаний
+    if (k >= 8) {
+      recs.push("Ты настоящий исследователь! Продолжай углубляться в интересные предметы — читай дополнительные книги, смотри познавательные видео, участвуй в олимпиадах.");
+      recs.push("Попробуй делиться знаниями с друзьями или младшими ребятами — это лучший способ закрепить то, что ты узнал.");
+    } else if (k >= 4) {
+      recs.push("Попробуй находить в учёбе что-то интересное для себя: задавай вопросы, которые тебе самому любопытны, ищи связи с реальной жизнью.");
+      recs.push("Читай книги не только по программе, но и те, что тебе нравятся — это расширит твой кругозор и сделает учёбу легче.");
+    } else {
+      recs.push("Попробуй найти хотя бы один предмет, который тебе по-настоящему интересен, и узнай о нём больше — это поможет «зажечь» интерес к учёбе.");
+      recs.push("Поговори с учителем или родителями о том, как учёба связана с твоими мечтами и будущими интересами.");
+    }
+
+    // Рекомендации по шкале отметок
+    if (m >= 8) {
+      recs.push("Постарайся меньше волноваться из-за оценок — одна отметка не определяет тебя как человека. Даже великие учёные когда-то получали двойки!");
+      recs.push("Учись радоваться процессу, а не только результату. Заведи «дневник успехов», куда будешь записывать всё, чему новому научился за день.");
+    } else if (m >= 4) {
+      recs.push("Помни: отметки — это лишь один из способов оценить знания. Важно и то, чему ты научился, какие навыки приобрёл.");
+    } else {
+      recs.push("Ты спокойно относишься к отметкам — это помогает не нервничать. Но следи, чтобы это не превратилось в безразличие к учёбе.");
+    }
+
+    // Общие рекомендации
+    recs.push("Обсудите результаты с родителями или школьным психологом — вместе можно найти лучшие пути для развития учебной мотивации.");
+
+    const recList = document.getElementById('recList');
+    recList.innerHTML = '';
+    recs.forEach(r => {
+      const li = document.createElement('li');
+      li.innerHTML = r;
+      recList.appendChild(li);
+    });
+  }
+
+  function launchConfetti() {
+    const colors = ['#ffd700','#ff6ec4','#4CAF50','#2196F3','#FF9800'];
+    for (let i = 0; i < 80; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.top = '-20px';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDelay = Math.random() * 2 + 's';
+      c.style.animationDuration = (2 + Math.random() * 2) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5000);
+    }
+  }
+
+  function restart() {
+    currentQ = 0;
+    knowledgeScore = 0;
+    markScore = 0;
+    document.getElementById('knowledgeMarker').style.left = '0%';
+    document.getElementById('markMarker').style.left = '0%';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-start').classList.add('active');
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressText').textContent = 'Готов начать?';
+  }
+</script>
+</body>
+</html>
